@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tkinter import *
-import functools
 
 # Заданные значения
 x_values = np.array([-2, -1, 0, 1, 2, 3, 4])
@@ -17,11 +16,12 @@ p_values = np.append(p_values, missing_probability)
 
 def theCmulativeDistributionFunction(x_value, p_values):
     # Проверка, чтобы сумма вероятностей равнялась 1
-    if sum(p_values) != 1:
+    if sum(p_values) < 1:
         p_values.append(1 - sum(p_values))  # Добавляем недостающее значение
     # Вычисляем функцию распределения и округляем до двух знаков
     F = np.round(np.cumsum(p_values), 2)
     return F
+
 
 
 def mathematicalExpectation(x, p):
@@ -180,32 +180,23 @@ def clicked_btn3():
     print(f'Математическое ожидание: {mo:.2f}')
     print(f'Мода: {mode}')
     print(f'Медиана: {med:.2f}')
-    сentral_mom2 = centralMoment(x_values, p_values, 2)
-    central_mom3 = centralMoment(x_values, p_values, 3)
-    central_mom4 = centralMoment(x_values, p_values, 4)
-    sko = round(сentral_mom2 ** 0.5, 2)
-    ax = round(central_mom3 / (sko ** 3), 2)
-    ex = round(central_mom4 / sko ** 4 - 3, 2)
-    print(f'Дисперсия = второй центарльный момент = {сentral_mom2}')
+    print(f'Дисперсия = второй центарльный момент = {centralMoment(x_values, p_values, 2)}')
     print(
         f'Среднеквдратичное отколнение = квадратный корень от дисперсии = {sko}')
     if ax < 0:
-        print(f'Ассиметрия = {ax} , т. е многоугольник или график плотности распределения скошен вправо')
+        print(f'Многоугольник или график плотности распределения будут скошены вправо. Ассиметрия = {ax}')
     else:
-        print(f'Ассиметрия = {ax} , т. е многоугольник или график плотности распределения скошен влево')
-    print(f'Эксцесс = {ex}')
+        print(f'Многоугольник или график плотности распределения будут скошены влево. Ассиметрия = {ax}')
+    if ex > 0:
+        print(f'Положительный эксцесс обозначает относительно остроконечное распрелеоение. Эксцесс = {ex}')
+    else:
+        print(f'Отрицательный – относительно сглаженное распределение. Эксцесс = {ex}')
 
-    print(
-        'Вероятность случайной величины Х меньше определенного значения х0 для дискретного случая определяется как '
-        'сумма вероятностей значений СВ, которые меньше или равны х0.')
-    x0 = 0
-    Fx0 = 0
+    sum = 0
     for i in range(len(x_values)):
-        if x_values[i] <= x0:
-            Fx0 += p_values[i]
-    print(f'P(X ≤ x0) = {Fx0}')
-
-
+        if x_values[i] <= 0:
+            sum += p_values[i]
+    print(f' P(X≤x0) = {sum}')
 
 window = Tk()
 window.title("Лабораторная работа 1. Вариант 3.")
