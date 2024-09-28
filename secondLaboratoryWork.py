@@ -55,9 +55,22 @@ def find_median(k):
     # Определяем уравнение для решения
     def equation(x):
         return theCmulativeDistributionFunction(x, k) - 0.5
+
     # Используем метод бисекции для поиска корня уравнения
     median = bisect(equation, 0, 2)  # Ищем корень в интервале [0, 2]
     return median
+
+
+# Функция для поиска начального момента
+def first_moment(k, m):
+    moment_value, _ = quad(lambda x: x ** m * f(x, k), x_min, x_max)
+    return round(moment_value, 2)
+
+
+# Функция для поиска центрального момента
+def central_moment(k, m, mo):
+    moment_value, _ = quad(lambda x: (x - mo) ** m * f(x, k), x_min, x_max)
+    return round(moment_value, 2)
 
 
 def clicked_btn1():
@@ -104,7 +117,7 @@ def clicked_btn2():
 def clicked_btn3():
     # Вычисление необходимых значений
     mo = mathematicalExpectation(x_min, x_max)
-    print(f'Медиана непрерывной случайной величины = {mo}')
+    print(f'Математическое ожидание непрерывной случайной величины = {mo}')
     # Генерация значений для функции плотности
     xp = np.linspace(0, 2, 100)  # Значения x от 0 до 2
     fp = [f(x, k) for x in xp]  # Значения функции плотности
@@ -113,6 +126,31 @@ def clicked_btn3():
     # Поиск медианы
     median_value = find_median(k)
     print(f'Медиана = {median_value:.2f}.')
+    startMoments = []
+    centralMoment = []
+    # Поиск начального момента
+    moment_start = first_moment(k, 1)
+    startMoments.append(moment_start)
+    print(f'Первый момент (математическое ожидание) = {moment_start:.2f}.')
+    for i in range(2, 5):
+        moment_start = (first_moment(k, i))
+        startMoments.append(moment_start)
+        print(f'{i} - ый момент  = {moment_start:.2f}.')
+
+    for i in range(1, 5):
+        moment_central = central_moment(k, i, startMoments[0])
+        centralMoment.append(moment_central)
+        print(f'Центральный {i} - ый момент  = {moment_central:.2f}.')
+
+    print(f'Диспрерсиея случайной величины = {centralMoment[1]}')
+    print(f'Среднеквадратичное отклонение (СКО) случайной величины = {round(centralMoment[1] ** 0.5, 2)} ')
+    print(f'Асимметрия = {round(centralMoment[2] / (round(centralMoment[1] ** 0.5, 2) ** 3), 2)}')
+    print(f'Эксцесс = {round(centralMoment[3] / (round(centralMoment[1] ** 0.5, 2) ** 4) - 3, 2)}')
+
+    sum = 0
+    for i in range(-1, 2):
+        sum += f(i, k)
+    print(f'P(-1⩽X⩽1) = {sum}')
 
 
 window = Tk()
@@ -122,7 +160,7 @@ lbl = Label(window, text="Выбери кнопку", font=("Arial Bold", 20))
 lbl.grid(column=0, row=0)
 btn1 = Button(window, text="Первое задание", command=clicked_btn1)
 btn1.grid(column=1, row=0)
-btn2 = Button(window, text="График функции распределения", command=clicked_btn2)
+btn2 = Button(window, text="Второе задание", command=clicked_btn2)
 btn2.grid(column=1, row=1)
 btn3 = Button(window, text="Третее задание", command=clicked_btn3)
 btn3.grid(column=1, row=2)
