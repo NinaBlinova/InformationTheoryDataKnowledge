@@ -1,58 +1,42 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.integrate import quad
 
-# Заданные значения
-x_values = np.array([-2, -1, 0, 1, 2, 3, 4])
-p_values = np.array([0.05, 0.1, 0.18, 0.25, 0.2, 0.12])
 
-# Проверка, чтобы сумма вероятностей равнялась 1
-if np.sum(p_values) != 1:
-    p_values = np.append(p_values, 1 - np.sum(p_values))  # Добавляем недостающее значение
+# Определяем функцию f(x)
+def f(x, k):
+    return k * (x + 2)
 
-# Вычисляем функцию распределения
-F = np.cumsum(p_values)
 
-# Подготавливаем данные для графика
-x1 = np.concatenate(([x_values[0] - 0.5], x_values, [x_values[-1] + 0.5]))
-F1 = np.concatenate(([0], F, [1]))
+# Определяем пределы интегрирования
+x_min = -1
+x_max = 1
 
-# Вычисляем промежутки
-intervals = [f"{x_values[i]}-{x_values[i+1]}" for i in range(len(x_values) - 1)]
+# Находим интеграл для определения k
+# Интегрируем (x + 2) от 0 до 2
+integral_value, _ = quad(lambda x: x + 2, x_min, x_max)
 
-# Создаем график
+# Условие для плотности вероятности
+# integral_value * k = 1 => k = 1 / integral_value
+k = round(1 / integral_value, 2)
+
+print(f"Коэффициент k: {k}")
+
+# Создаем массив x для построения графика
+x_values = np.linspace(-1, 1, 400)  # Для отображения от -1 до 3
+y_values = f(x_values, k)
+
+# Построение графика
 plt.figure(figsize=(10, 6))
-plt.step(x1, F1, where='post', color='k', label='Функция распределения')
-plt.scatter(x_values, F, color='k')  # Изменено на F вместо F[:-1]
-
-# Добавляем стрелки для обозначения значений функции распределения
-for i in range(len(F)):
-    xi = [x1[2 + i], x1[2 + i]]  # координаты стрелок
-    Fi = [F[i], F[i]]
-    plt.annotate('', xy=(xi[0], Fi[0]), xytext=(xi[0], 0),
-                 arrowprops=dict(arrowstyle='->', color='black'))
-
-# Настройки графика
-plt.xlim(min(x1), max(x1))
-plt.ylim(0, 1)
-plt.title('Функция распределения', fontsize=14)
-plt.xlabel('x', fontsize=12)
-plt.ylabel('F(x)', fontsize=12)
-plt.grid()
-plt.xticks(fontsize=10)
-plt.yticks(fontsize=10)
-
-# Создаем DataFrame для отображения таблицы
-data = {'Интервал': intervals, 'P(X)': p_values[:-1]}  # Убираем последнее значение вероятности
-table_data = np.array(list(zip(intervals, p_values[:-1])))
-
-# Добавляем таблицу рядом с графиком
-plt.table(cellText=table_data,
-          colLabels=['Интервал', 'P(X)'],
-          cellLoc='center',
-          loc='right',
-          bbox=[1.05, 0.1, 0.4, 0.8])
-
-# Показываем график
+plt.plot(x_values, y_values, label=f'f(x) = {k:.4f}(x + 2)', color='blue')
+plt.fill_between(x_values, y_values, where=(x_values >= -1) & (x_values <= 1), alpha=0.3)
+plt.title('График плотности распределения')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.xlim(-1, 1)
+plt.ylim(0, np.max(y_values) + 1)
+plt.axhline(0, color='black', lw=0.5, ls='--')
+plt.axvline(0, color='black', lw=0.5, ls='--')
 plt.legend()
-plt.tight_layout()
+plt.grid()
 plt.show()
