@@ -131,7 +131,7 @@ def clicked_btn3():
     # Поиск начального момента
     moment_start = first_moment(k, 1)
     startMoments.append(moment_start)
-    print(f'Первый момент (математическое ожидание) = {moment_start:.2f}.')
+    print(f'Первый момент (математическое ожидание) = {moment_start:.1f}.')
     for i in range(2, 5):
         moment_start = (first_moment(k, i))
         startMoments.append(moment_start)
