@@ -1,11 +1,9 @@
-# Исходный текст
-from numpy import sort
+import sys
+from itertools import product
 
 text = "гладко было на бумаге, да забыли про овраги, а по ним ходить"
 
 frequency_dict = {
-    " ": 0.15,
-    ',': 0.1,
     'о': 0.10983,
     'е': 0.08483,
     'а': 0.07998,
@@ -42,30 +40,82 @@ frequency_dict = {
 }
 
 
-# Разделение текста на блоки длины k
-def split_text_into_blocks(text, k):
-    return [text[i:i + k] for i in range(0, len(text), k)]
-
-
-def find_probability(blocks, frequency_dict, k):
+def probability(dict, k):
     block_probability = {}
-    for block in blocks:
-        probability = 1.0
-        for i in range(0, k):
-            prob = frequency_dict.get(block[i].lower(), 0)
-            probability *= prob
-        block_probability[block] = probability
+
+    # Генерируем все возможные сочетания букв длиной k
+    for combination in product(dict.keys(), repeat=k):
+        # Вычисляем вероятность для текущей комбинации
+        prob = 1
+        for letter in combination:
+            prob *= dict[letter]
+        # Преобразуем кортеж в строку для удобства
+        block = ''.join(combination)
+        block_probability[block] = prob
+
     return block_probability
 
 
-# Основная логика программы
-block_size = 4
-blocks = split_text_into_blocks(text, block_size)
-print(blocks)
+tree = dict(sorted(probability(frequency_dict, 4).items(), key=lambda item: item[1], reverse=True))
+keysList = list(tree.keys())
+p = list(tree.values())
 
-probabilities = find_probability(blocks, frequency_dict, block_size)
-sorted_prob = dict(sorted(probabilities.items()))
-# Вывод результатов
-for b, p in sorted_prob.items() :
-    print(f"Блок: '{b}' - Вероятность: {p:.10f}")
 
+def divide(mpDivide):
+    allSum = 0
+    for i in range(len(mpDivide)):
+        allSum += mpDivide[i]
+    i1, i2, i3, mn1, mn2, mn3 = 0, 0, 0, sys.maxsize, sys.maxsize, sys.maxsize
+    sum = [0, 0, 0]
+
+    for k in range(len(mpDivide)):
+        x = mpDivide[k]
+        sum[0] += x
+        if mn1 > abs(allSum - sum[0] * 4):
+            mn1 = abs(allSum - sum[0] * 4)
+            i1 = k + 1
+
+        if i1 > 0 and k > i1:
+            sum[1] += x
+            if mn2 > abs(allSum - sum[1] * 4):
+                mn2 = abs(allSum - sum[1] * 4)
+                i2 = k + 1
+
+        if i2 > 0 and k > i2:
+            sum[2] += x
+            if mn3 > abs(allSum - sum[2] * 4):
+                mn3 = abs(allSum - sum[2] * 4)
+                i3 = k + 1
+    return mpDivide[:i1], mpDivide[i1:i2], mpDivide[i2:i3], mpDivide[i3:]
+
+
+# iterable_object[start:stop:step]
+# s1, s2, s3, s4 = divide(p)
+# print(sum(s1), len(s1), sum(s2), len(s2))
+# print(sum(s3), len(s3), sum(s4), len(s4))
+
+
+def label(mpLabel):  # to denote the right side with 1, left side with 0
+    dictSF = {}
+    if len(mpLabel) > 1:
+        mp1, mp2, mp3, mp4 = divide(mpLabel)
+        for i in range(len(mp1)):
+            dictSF[mp1[i]] = dictSF.get(mp1[i], '') + '0'
+        for i in range(len(mp2)):
+            dictSF[mp2[i]] = dictSF.get(mp2[i], '') + '1'
+        for i in range(len(mp3)):
+            dictSF[mp3[i]] = dictSF.get(mp3[i], '') + '2'
+        for i in range(len(mp4)):
+            dictSF[mp4[i]] = dictSF.get(mp4[i], '') + '3'
+
+        # Рекурсивные вызовы
+        dictSF.update(label(mp1))
+        dictSF.update(label(mp2))
+        dictSF.update(label(mp3))
+        dictSF.update(label(mp4))
+
+    # Если длины всех подмассивов равны 1, просто возвращаем текущий словарь
+    return dictSF
+
+
+label(p)

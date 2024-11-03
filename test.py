@@ -1,111 +1,223 @@
-from collections import Counter
-import math
-
-# Исходный текст
-text = "Глaдкo былo нa бyмaгe, дa зaбыли прo oврaги, a пo ним xoдить"
-
-frequency_dict = {
-    ' ': 0.15,
-    ',': 0.1,
-    'о': 0.10983,
-    'е': 0.08483,
-    'а': 0.07998,
-    'и': 0.07367,
-    'н': 0.06700,
-    'т': 0.06318,
-    'с': 0.05473,
-    'р': 0.04746,
-    'в': 0.04533,
-    'л': 0.04343,
-    'к': 0.03486,
-    'м': 0.03203,
-    'д': 0.02977,
-    'п': 0.02804,
-    'у': 0.02615,
-    'я': 0.02001,
-    'ы': 0.01898,
-    'ь': 0.01735,
-    'г': 0.01687,
-    'з': 0.01641,
-    'б': 0.01592,
-    'ч': 0.01450,
-    'й': 0.01208,
-    'х': 0.00966,
-    'ж': 0.00940,
-    'ш': 0.00718,
-    'ю': 0.00639,
-    'ц': 0.00486,
-    'щ': 0.00361,
-    'э': 0.00331,
-    'ф': 0.00267,
-    'ъ': 0.00037,
-    'ё': 0.00013
-}
+from operator import itemgetter
+import sys
+import random
 
 
-# Функция для разбивки текста на блоки заданной длины
-def split_into_blocks(text, block_size):
-    return [text[i:i + block_size] for i in range(0, len(text), block_size)]
+def getEncoded(text):
+    count = 0
+    mp = {}
+    for x in text:
+        if x in mp:
+            mp[x] += 1
+        else:
+            mp[x] = 1
+        count += 1
+    mpMain = []
+    for key in mp:
+        mpMain.append([key, mp[key], ''])
+    # [['A', 5, ''], ['B', 4, ''], ...] example
+    mpMain = sorted(mpMain, key=itemgetter(1), reverse=True)
+    label(mpMain)
+    mpMain = sorted(mpMain, key=itemgetter(0))
+    # print(mpMain)
+    encoded = ''
+    dct = {}
+    for x in mpMain:
+        dct[x[0]] = x[2]
+    for ch in text:
+        encoded += dct[ch]
+
+    return encoded, mpMain  # 'mpMain' is a list of each symbol with its encoded values, we need this list to decode
+    # the encoded string correctly.
 
 
-# Функция для вычисления вероятностей блоков
-def calculate_probabilities(blocks):
-    probabilities = 1
+# 5 4 3 3 2 - 17
+# 5 12 -- 7
+# 9 8 -- 1
 
-    return probabilities
+# sum allSum-sum
+# abs(allSum - sum - sum )
+
+def divide(mpDivide):
+    allSum = 0
+    for i in range(len(mpDivide)):
+        allSum += mpDivide[i][1]
+    i, mn, sum = 0, sys.maxsize, 0
+    for k in range(len(mpDivide)):
+        x = mpDivide[k]
+        sum += x[1]
+        if mn > abs(allSum - sum * 2):
+            mn = abs(allSum - sum * 2)
+            i = k + 1
+
+    return mpDivide[:i], mpDivide[i:]
 
 
-# Функция для кодирования методом Шеннона-Фано
-def shannon_fano_coding(probabilities):
-    sorted_blocks = sorted(probabilities.items(), key=lambda item: item[1], reverse=True)
-    codes = {}
+def label(mpLabel):  # to denote the right side with 1, left side with 0
+    if len(mpLabel) > 1:
+        mpL, mpR = divide(mpLabel)
 
-    def assign_codes(blocks):
-        if len(blocks) == 1:
-            codes[blocks[0][0]] = ""
+        for i in range(len(mpL)):
+            mpL[i][2] += '0'
+        for i in range(len(mpR)):
+            mpR[i][2] += '1'
+
+        if len(mpL) == 1 and len(mpR) == 1:
             return
-
-        total = sum(prob for _, prob in blocks)
-        cumulative = 0
-        split_index = 0
-
-        for i, (block, prob) in enumerate(blocks):
-            cumulative += prob
-            if cumulative >= total / 2:
-                split_index = i + 1
-                break
-
-        assign_codes(blocks[:split_index])
-        assign_codes(blocks[split_index:])
-
-        for i in range(split_index):
-            codes[blocks[i][0]] = '0' + codes[blocks[i][0]]
-        for i in range(split_index, len(blocks)):
-            codes[blocks[i][0]] = '1' + codes[blocks[i][0]]
-
-    assign_codes(sorted_blocks)
-    return codes
+        label(mpL)
+        label(mpR)
 
 
-# Функция для вычисления среднего числа сигналов
-def average_signal_length(codes, probabilities):
-    return sum(len(codes[block]) * prob for block, prob in probabilities.items())
+def binarySearch(mpSearch, target):
+    s, e = 0, len(mpSearch) - 1
+    while s <= e:
+        m = s + (e - s) // 2
+        if mpSearch[m][0] == target:
+            return mpSearch[m][2]
+        if target < mpSearch[m][0]:
+            e = m - 1
+        else:
+            s = m + 1
 
 
-# Основная логика программы
-block_size = 4
-blocks = split_into_blocks(text, block_size)
-probabilities = calculate_probabilities(blocks)
-codes = shannon_fano_coding(probabilities)
-avg_length = average_signal_length(codes, probabilities)
+def decode(encoded, mpMain):
+    decodeChecker = {}
+    for x in mpMain:
+        decodeChecker[x[2]] = x[0]
 
-# Вывод результатов
-print("Блоки:")
-print(blocks)
-print("nВероятности:")
-for block, prob in probabilities.items():
-    print(f"{block}: {prob:.4f}")
-print("nКоды:")
-for block, code in codes.items():
-    print(f"{block}: {code}")
-print(f"nСреднее число элементарных сигналов: {avg_length:.4f}")
+    decoded = ''
+    string = ''
+    for x in encoded:
+        string += x
+        if decodeChecker.get(string):
+            decoded += decodeChecker[string]
+            string = ''
+    return decoded
+
+
+###############################
+########HAMMING CODE###########
+###############################
+
+
+def divideDataBits(codes, encoded):
+    bits = []
+    for x in encoded:
+        bits.append(x)
+        if len(bits) == 4:
+            codes.append(bits)
+            bits = []
+    while len(bits) < 4:
+        bits.append('0')
+    codes.append(bits)
+
+
+# Hamming(7,4)
+def HammingFunction(codes):
+    hammingCode = ''
+    hammingCodeWithSpaces = ''
+    for bits in codes:
+        r1 = int(bits[0]) ^ int(bits[1]) ^ int(bits[2])
+        r2 = int(bits[1]) ^ int(bits[2]) ^ int(bits[3])
+        r3 = int(bits[0]) ^ int(bits[1]) ^ int(bits[3])
+        bits.extend([str(r1), str(r2), str(r3)])
+        hammingCode += ''.join(map(str, bits))
+        # hammingCodeWithSpaces += ''.join(map(str, bits)) + ' '
+
+    # print(hammingCodeWithSpaces)
+    return hammingCode
+
+
+# To add random errors to our hamming code
+def addErrors(hammingCode):
+    block = ''
+    newHammingCode = ''
+    for x in hammingCode:
+        block += x
+        if len(block) == 7:
+            n = random.randint(0, 7)
+            if n == 7:
+                newHammingCode += block
+                block = ''
+                continue
+            else:
+                helper = list(block)
+                helper[n] = block[n] == '1' and '0' or '1'
+                block = ''.join(helper)
+                newHammingCode += block
+                block = ''
+    return newHammingCode
+
+
+def getHammingCode(encoded):
+    codes = []
+    divideDataBits(codes, encoded)
+    hammingCode = HammingFunction(codes)
+    hammingCodeWithErrors = addErrors(hammingCode)
+    return hammingCode, hammingCodeWithErrors  # This function returns a hamming code and a hamming code with random
+    # errors at once
+
+
+def getErrorBitIndex(s1, s2, s3):
+    if not s1 and not s2 and not s3:
+        return None
+    elif not s1 and not s2 and s3:
+        return 6
+    elif not s1 and s2 and not s3:
+        return 5
+    elif not s1 and s2 and s3:
+        return 3
+    elif s1 and not s2 and not s3:
+        return 4
+    elif s1 and not s2 and s3:
+        return 0
+    elif s1 and s2 and not s3:
+        return 2
+    elif s1 and s2 and s3:
+        return 1
+
+
+# This function fixes any error in the Hamming code, if any.
+def findAndFix(HCWithErrors):
+    block = ''
+    result = ''
+    for x in HCWithErrors:
+        block += x
+        if len(block) == 7:
+            S1 = int(block[4]) ^ int(block[0]) ^ int(block[1]) ^ int(block[2])
+            S2 = int(block[5]) ^ int(block[1]) ^ int(block[2]) ^ int(block[3])
+            S3 = int(block[6]) ^ int(block[0]) ^ int(block[1]) ^ int(block[3])
+            i = getErrorBitIndex(S1, S2, S3)
+
+            if i is not None:
+                helper = list(block)
+                helper[i] = block[i] == '1' and '0' or '1'
+                block = ''.join(helper)
+
+            result += block[0:4]
+            block = ''
+
+    return result
+
+
+# driver code
+def main():
+    encoded, listWithCodeBlocks = getEncoded('Test input')
+    print('encoded:', encoded)
+    decoded = decode(encoded, listWithCodeBlocks)
+    print('decoded:', decoded)
+
+    # Hamming code (7,4)
+    hammingCode, hammingCodeWithErrors = getHammingCode(encoded)
+    print('hamming code: ', hammingCode)
+    print('hamming code with errors', hammingCodeWithErrors)
+
+    # Print results:
+    # encoded: 01001100111001001011101110111100
+    # decoded: Test input
+    # hamming code:  010011111000101110100010011110110001011000101100011000100000000
+    # hamming code with errors 000011111000111110110110011110010001001000101100011000100000000
+
+
+if __name__ == '__main__':
+    main()
