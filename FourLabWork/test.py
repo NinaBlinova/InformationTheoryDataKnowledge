@@ -66,25 +66,22 @@ def divide(mpDivide):
     for i in range(len(mpDivide)):
         allSum += mpDivide[i]
     i1, i2, i3, mn1, mn2, mn3 = 0, 0, 0, sys.maxsize, sys.maxsize, sys.maxsize
-    sum = [0, 0, 0]
-
+    sums = [0, 0, 0]
     for k in range(len(mpDivide)):
         x = mpDivide[k]
-        sum[0] += x
-        if mn1 > abs(allSum - sum[0] * 4):
-            mn1 = abs(allSum - sum[0] * 4)
+        sums[0] += x
+        if mn1 > abs(allSum - sums[0] * 4):
+            mn1 = abs(allSum - sums[0] * 4)
             i1 = k + 1
-
         if i1 > 0 and k > i1:
-            sum[1] += x
-            if mn2 > abs(allSum - sum[1] * 4):
-                mn2 = abs(allSum - sum[1] * 4)
+            sums[1] += x
+            if mn2 > abs(allSum - sums[1] * 4):
+                mn2 = abs(allSum - sums[1] * 4)
                 i2 = k + 1
-
         if i2 > 0 and k > i2:
-            sum[2] += x
-            if mn3 > abs(allSum - sum[2] * 4):
-                mn3 = abs(allSum - sum[2] * 4)
+            sums[2] += x
+            if mn3 > abs(allSum - sums[2] * 4):
+                mn3 = abs(allSum - sums[2] * 4)
                 i3 = k + 1
     return mpDivide[:i1], mpDivide[i1:i2], mpDivide[i2:i3], mpDivide[i3:]
 
@@ -118,4 +115,5 @@ def label(mpLabel):  # to denote the right side with 1, left side with 0
     return dictSF
 
 
-label(p)
+d = label(p)
+print(d)
