@@ -1,3 +1,5 @@
+from tkinter import Tk, Label, Button
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -193,7 +195,7 @@ elif best_dist == 'lognorm':
 elif best_dist == 'weibull_min':
     best_cdf = stats.weibull_min.cdf(x_range_cdf, *best_param)
 
-plt.plot(x_range_cdf, best_cdf, color='red', label=f'Подобранное {best_dist} распределение')
+plt.plot(x_range_cdf, best_cdf, color='green', label=f'Подобранное {best_dist} распределение')
 plt.title(f'Подобрано {best_dist} распределение')
 plt.xlabel('x')
 plt.ylabel('F(x)')
